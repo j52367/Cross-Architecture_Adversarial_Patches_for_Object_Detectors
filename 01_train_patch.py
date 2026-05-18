@@ -151,6 +151,7 @@ def get_conf_yolo(nn_model, images: torch.Tensor) -> torch.Tensor:
 def get_conf_rtdetr(nn_model, images: torch.Tensor) -> torch.Tensor:
     """
     RT-DETR evasion loss.
+    ultralytics RT-DETR eval 모드 출력은 이미 sigmoid 적용된 값 → sigmoid 재적용 금지
     출력 [B, 300, 4+nc] → class scores [B, 300, nc] → max conf per query
     이 값을 최소화 → 검출 억제
     """
@@ -162,10 +163,11 @@ def get_conf_rtdetr(nn_model, images: torch.Tensor) -> torch.Tensor:
             # [B, small, large] → [B, na, nc+4]
             class_scores = preds[:, :, 4:]
         else:
-            # [B, large, small] → transpose to [B, nc+4, na] → class_scores
+            # [B, large, small] → transpose
             preds = preds.transpose(1, 2)
             class_scores = preds[:, :, 4:]
-        conf = class_scores.sigmoid().max(dim=2).values  # [B, queries]
+        # sigmoid 이미 적용된 값이므로 그대로 사용
+        conf = class_scores.max(dim=2).values  # [B, queries]
         return conf.max(dim=1).values.mean()
     raise ValueError(f"예상치 못한 RT-DETR 출력 shape: {preds.shape}")
 

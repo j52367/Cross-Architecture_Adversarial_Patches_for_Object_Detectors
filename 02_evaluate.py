@@ -183,7 +183,7 @@ def run_evaluation(patch_path: str | None, label: str, records: list, device):
         try:
             model = YOLO(model_name)
             clean_ap = evaluate_map(model, records, None, device)
-            patch_ap = evaluate_map(model, records, patch, device) if patch else clean_ap
+            patch_ap = evaluate_map(model, records, patch, device) if patch is not None else clean_ap
             drop = clean_ap - patch_ap
             results[model_name] = (clean_ap, patch_ap, drop)
             print(f"  {model_name:<13} {clean_ap:>10.3f} {patch_ap:>10.3f} {drop:>10.3f}")

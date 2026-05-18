@@ -19,3 +19,4 @@ venv/
 # 기타
 .DS_Store
 *.egg-info/
+.claude/

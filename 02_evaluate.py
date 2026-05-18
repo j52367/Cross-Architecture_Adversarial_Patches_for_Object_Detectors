@@ -89,15 +89,17 @@ def compute_ap(recall: np.ndarray, precision: np.ndarray) -> float:
 
 
 def iou(box1, box2) -> float:
+    box1 = [float(v) for v in box1]
+    box2 = [float(v) for v in box2]
     x1 = max(box1[0], box2[0])
     y1 = max(box1[1], box2[1])
     x2 = min(box1[2], box2[2])
     y2 = min(box1[3], box2[3])
-    inter = max(0, x2-x1) * max(0, y2-y1)
+    inter = max(0.0, x2-x1) * max(0.0, y2-y1)
     area1 = (box1[2]-box1[0]) * (box1[3]-box1[1])
     area2 = (box2[2]-box2[0]) * (box2[3]-box2[1])
     union = area1 + area2 - inter
-    return inter / union if union > 0 else 0.0
+    return float(inter) / float(union) if union > 0.0 else 0.0
 
 
 def evaluate_map(model: YOLO, records: list, patch: torch.Tensor | None, device) -> float:
@@ -124,8 +126,9 @@ def evaluate_map(model: YOLO, records: list, patch: torch.Tensor | None, device)
                                  classes=[0], verbose=False)  # class 0 = person
 
         preds = results[0].boxes
-        pred_boxes = preds.xyxy.cpu().numpy() if len(preds) > 0 else np.zeros((0, 4))
-        pred_confs = preds.conf.cpu().numpy() if len(preds) > 0 else np.zeros(0)
+        n_preds = int(preds.xyxy.shape[0]) if preds is not None else 0
+        pred_boxes = preds.xyxy.cpu().detach().numpy() if n_preds > 0 else np.zeros((0, 4))
+        pred_confs = preds.conf.cpu().detach().numpy().flatten() if n_preds > 0 else np.zeros(0)
 
         gt_matched = [False] * len(bboxes)
 

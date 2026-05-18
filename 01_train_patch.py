@@ -161,22 +161,12 @@ def get_conf_rtdetr(nn_model, images: torch.Tensor) -> torch.Tensor:
       pred_scores: [B, num_queries, nc] raw logits → sigmoid 적용
     """
     out = nn_model(images)
-    # train 모드: (pred_scores [B,nq,nc], pred_boxes [B,nq,4]) 튜플
-    if isinstance(out, (list, tuple)):
-        pred_scores = out[0]  # [B, nq, nc] or [B, nc, nq]
-    else:
-        pred_scores = out
-
-    if pred_scores.dim() == 3:
-        if pred_scores.shape[1] > pred_scores.shape[2]:
-            # [B, nq, nc]
-            conf = pred_scores.sigmoid().max(dim=2).values   # [B, nq]
-        else:
-            # [B, nc, nq]
-            conf = pred_scores.sigmoid().max(dim=1).values   # [B, nq]
-        return conf.max(dim=1).values.mean()
-
-    raise ValueError(f"예상치 못한 RT-DETR 출력 shape: {pred_scores.shape}")
+    # train 모드 출력: (dec_boxes[6,B,300,4], dec_scores[6,B,300,80],
+    #                   pred_boxes[B,300,4], pred_scores[B,300,80], None)
+    # out[3]: 최종 class scores [B, 300, 80]
+    pred_scores = out[3]  # [B, num_queries, nc]
+    conf = pred_scores.sigmoid().max(dim=2).values  # [B, num_queries]
+    return conf.max(dim=1).values.mean()
 
 
 # ── 학습 루프 ──────────────────────────────────────────────────────────────────

@@ -1,0 +1,23 @@
+# 데이터 (COCO 이미지, 용량 큼)
+data/
+
+# 학습 결과물
+output/
+
+# 모델 weights
+*.pt
+*.pth
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# 기타
+.DS_Store
+*.egg-info/

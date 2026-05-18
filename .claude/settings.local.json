@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//mnt/c/Users/82106/**)",
+      "Read(//mnt/c/Users/**)",
+      "Bash(find /mnt -name \"*.docx\" 2>/dev/null | head -5)",
+      "PowerShell(pandoc \"C:\\\\Users\\\\82106\\\\OneDrive\\\\���� ȭ��\\\\[38] Cross-Architecture ��ü ����⿡ ���� ���̼� ���� Adversarial Patch ����.docx\" -t markdown 2>&1)"
+    ]
+  }
+}

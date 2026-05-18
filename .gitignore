@@ -1,7 +1,5 @@
-# 데이터 (COCO 이미지, 용량 큼)
 data/
 
-# 학습 결과물
 output/
 
 # 모델 weights

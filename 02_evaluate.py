@@ -102,13 +102,13 @@ def iou(box1, box2) -> float:
     return float(inter) / float(union) if union > 0.0 else 0.0
 
 
-def evaluate_map(model: YOLO, records: list, patch: torch.Tensor | None, device) -> float:
+def evaluate_map(model: YOLO, records: list, patch, device) -> float:
     """
     model: YOLO wrapper (ultralytics)
     patch: None이면 clean 이미지 평가
     반환: person 클래스 AP
     """
-    all_tp, all_fp, all_fn = [], [], []
+    all_tp, all_fp = [], []
     total_gt = 0
 
     for rec in tqdm(records, desc="  평가 중", leave=False):
@@ -120,19 +120,30 @@ def evaluate_map(model: YOLO, records: list, patch: torch.Tensor | None, device)
             with torch.no_grad():
                 img_tensor = apply_patch(img_tensor, patch, bboxes)
 
-        # ultralytics predict (PIL 이미지로 변환하여 전달)
-        img_np = (img_tensor.cpu().permute(1, 2, 0).numpy() * 255).astype(np.uint8)
+        # tensor → numpy 변환 (detach로 grad graph 완전 분리)
+        img_np = (img_tensor.detach().cpu().permute(1, 2, 0).numpy() * 255).astype(np.uint8)
         results = model.predict(img_np, conf=CONF_THRESHOLD, iou=IOU_THRESHOLD,
                                  classes=[0], verbose=False)  # class 0 = person
 
         preds = results[0].boxes
-        n_preds = int(preds.xyxy.shape[0]) if preds is not None else 0
-        pred_boxes = preds.xyxy.cpu().detach().numpy() if n_preds > 0 else np.zeros((0, 4))
-        pred_confs = preds.conf.cpu().detach().numpy().flatten() if n_preds > 0 else np.zeros(0)
+        if preds is None or preds.xyxy is None:
+            n_preds = 0
+        else:
+            n_preds = int(preds.xyxy.shape[0])
+
+        if n_preds > 0:
+            pred_boxes = np.array(preds.xyxy.cpu().detach().tolist())   # (n, 4)
+            pred_confs = np.array(preds.conf.cpu().detach().tolist()).flatten()  # (n,)
+        else:
+            pred_boxes = np.zeros((0, 4))
+            pred_confs = np.zeros(0)
 
         gt_matched = [False] * len(bboxes)
 
-        for pb, pc in sorted(zip(pred_boxes, pred_confs), key=lambda x: -x[1]):
+        # confidence 내림차순 정렬
+        order = np.argsort(-pred_confs)
+        for idx in order:
+            pb = [float(v) for v in pred_boxes[idx]]
             matched = False
             for gi, gb in enumerate(bboxes):
                 if not gt_matched[gi] and iou(pb, gb) >= 0.5:
@@ -157,8 +168,9 @@ def evaluate_map(model: YOLO, records: list, patch: torch.Tensor | None, device)
 def run_evaluation(patch_path: str | None, label: str, records: list, device):
     patch = None
     if patch_path:
-        patch = torch.load(patch_path, map_location=device)
-        patch = patch.to(device)
+        patch = torch.load(patch_path, map_location=device, weights_only=True)
+        patch = patch.detach().float().to(device)
+        patch.requires_grad_(False)
 
     print(f"\n{'='*55}")
     print(f"패치: {label}")

@@ -101,11 +101,17 @@ def apply_patch(img: torch.Tensor, patch: torch.Tensor, bboxes: list) -> torch.T
 
 # ── 모델 로드 ──────────────────────────────────────────────────────────────────
 
-def load_model(name: str, device: torch.device):
-    """YOLO 모델 로드 + 가중치 동결."""
+def load_model(name: str, device: torch.device, train_mode: bool = False):
+    """YOLO 모델 로드 + 가중치 동결.
+    train_mode=True: gradient flow가 필요한 경우 (RT-DETR eval 모드 버그 우회)
+    """
     print(f"  모델 로드: {name}")
     m = YOLO(name)
-    nn = m.model.to(device).eval()
+    nn = m.model.to(device)
+    if train_mode:
+        nn.train()
+    else:
+        nn.eval()
     for p in nn.parameters():
         p.requires_grad_(False)
     return nn
@@ -150,24 +156,27 @@ def get_conf_yolo(nn_model, images: torch.Tensor) -> torch.Tensor:
 
 def get_conf_rtdetr(nn_model, images: torch.Tensor) -> torch.Tensor:
     """
-    RT-DETR evasion loss.
-    ultralytics RT-DETR eval 모드 출력은 이미 sigmoid 적용된 값 → sigmoid 재적용 금지
-    [B, queries, 4+nc] 또는 [B, 4+nc, queries] 두 형태 모두 처리
-    queries=300, 4+nc=84(COCO 기준)
+    RT-DETR evasion loss (train 모드로 실행).
+    train 모드 출력: tuple(pred_scores, pred_boxes)
+      pred_scores: [B, num_queries, nc] raw logits → sigmoid 적용
     """
     out = nn_model(images)
-    preds = out[0] if isinstance(out, (list, tuple)) else out
-    if preds.dim() == 3:
-        if preds.shape[1] > preds.shape[2]:
-            # [B, queries, 4+nc] e.g. [B, 300, 84]
-            class_scores = preds[:, :, 4:]              # [B, queries, nc]
-            conf = class_scores.max(dim=2).values       # [B, queries]
+    # train 모드: (pred_scores [B,nq,nc], pred_boxes [B,nq,4]) 튜플
+    if isinstance(out, (list, tuple)):
+        pred_scores = out[0]  # [B, nq, nc] or [B, nc, nq]
+    else:
+        pred_scores = out
+
+    if pred_scores.dim() == 3:
+        if pred_scores.shape[1] > pred_scores.shape[2]:
+            # [B, nq, nc]
+            conf = pred_scores.sigmoid().max(dim=2).values   # [B, nq]
         else:
-            # [B, 4+nc, queries] e.g. [B, 84, 300]
-            class_scores = preds[:, 4:, :]              # [B, nc, queries]
-            conf = class_scores.max(dim=1).values       # [B, queries]
+            # [B, nc, nq]
+            conf = pred_scores.sigmoid().max(dim=1).values   # [B, nq]
         return conf.max(dim=1).values.mean()
-    raise ValueError(f"예상치 못한 RT-DETR 출력 shape: {preds.shape}")
+
+    raise ValueError(f"예상치 못한 RT-DETR 출력 shape: {pred_scores.shape}")
 
 
 # ── 학습 루프 ──────────────────────────────────────────────────────────────────
@@ -191,7 +200,8 @@ def train(args):
         print("  YOLOv8 출력 확인:", end=" ")
         debug_output_shape(yolo_nn, device)
     if args.mode in ("rtdetr", "ensemble"):
-        rtdetr_nn = load_model("rtdetr-l.pt", device)
+        # RT-DETR: eval 모드에서 gradient graph 끊김 → train 모드로 우회
+        rtdetr_nn = load_model("rtdetr-l.pt", device, train_mode=True)
         print("  RT-DETR 출력 확인:", end=" ")
         debug_output_shape(rtdetr_nn, device)
 

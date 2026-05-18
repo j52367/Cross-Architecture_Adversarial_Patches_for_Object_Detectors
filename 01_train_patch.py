@@ -27,9 +27,9 @@ from ultralytics import YOLO
 # ── 설정 ──────────────────────────────────────────────────────────────────────
 
 IMG_SIZE = 640           # YOLO 표준 입력 크기
-PATCH_SIZE = 300         # 패치 픽셀 크기 (정사각형)
-PATCH_FRACTION = 0.35    # 패치가 bounding box에서 차지하는 비율
-PGD_STEPS = 10           # 이미지당 PGD 업데이트 횟수
+PATCH_SIZE = 400         # 패치 픽셀 크기 (정사각형)
+PATCH_FRACTION = 0.50    # 패치가 bounding box에서 차지하는 비율
+PGD_STEPS = 20           # 이미지당 PGD 업데이트 횟수
 PGD_STEP_SIZE = 2 / 255  # 각 스텝의 크기
 ALPHA = 0.5              # YOLO loss 가중치
 BETA = 0.5               # RT-DETR loss 가중치

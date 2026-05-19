@@ -33,7 +33,7 @@ PGD_STEPS = 20           # 이미지당 PGD 업데이트 횟수
 PGD_STEP_SIZE = 2 / 255  # 각 스텝의 크기
 ALPHA = 0.5              # YOLO loss 가중치
 BETA = 0.5               # RT-DETR loss 가중치
-BATCH_SIZE = 4           # GPU 메모리에 따라 조절 (10GB: 4, 24GB: 16, CPU: 1)
+BATCH_SIZE = 16          # GPU 메모리에 따라 조절 (24GB: 16, 10GB: 4, CPU: 1)
 MAX_IMAGES = None        # None = 전체 사용. 빠른 테스트: 200
 
 DATA_FILE = Path("data/person_annotations.json")

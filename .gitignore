@@ -2,21 +2,20 @@ data/
 
 output/
 
-# 모델 weights
 *.pt
 *.pth
 
-# Python
 __pycache__/
 *.pyc
 *.pyo
 .venv/
 venv/
 
-# Jupyter
 .ipynb_checkpoints/
+*.ipynb
 
-# 기타
 .DS_Store
 *.egg-info/
 .claude/
+
+*.log

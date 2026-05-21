@@ -196,10 +196,12 @@ def run_evaluation(patch_path: str | None, label: str, records: list, device):
 def compare_all(records: list, device):
     """baseline A, baseline B, 앙상블 세 가지 패치 비교."""
     configs = [
-        (None,                                    "Clean (no patch)"),
-        ("output/yolo_patch_final.pt",            "Baseline A (YOLOv8 단독)"),
-        ("output/rtdetr_patch_final.pt",          "Baseline B (RT-DETR 단독)"),
-        ("output/ensemble_patch_final.pt",        "제안 방법 (Ensemble)"),
+        (None,                                             "Clean (no patch)"),
+        ("output/yolo_patch_final.pt",                    "Baseline A (YOLOv8 단독)"),
+        ("output/rtdetr_patch_final.pt",                  "Baseline B (RT-DETR 단독)"),
+        ("output/ensemble_patch_final.pt",                "Ensemble α=0.5 β=0.5"),
+        ("output/ensemble_a03_b07_patch_final.pt",        "Ensemble α=0.3 β=0.7"),
+        ("output/ensemble_a07_b03_patch_final.pt",        "Ensemble α=0.7 β=0.3"),
     ]
     all_results = {}
     for path, label in configs:

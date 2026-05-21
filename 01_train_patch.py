@@ -195,6 +195,10 @@ def train(args):
         print("  RT-DETR 출력 확인:", end=" ")
         debug_output_shape(rtdetr_nn, device)
 
+    # 실행 이름 (파일 저장용)
+    run_name = get_run_name(args.mode, ALPHA, BETA)
+    print(f"실행 이름: {run_name}")
+
     # 패치 초기화 (random noise)
     patch = torch.rand(3, PATCH_SIZE, PATCH_SIZE, device=device, requires_grad=True)
 
@@ -251,30 +255,39 @@ def train(args):
         print(f"  Epoch {epoch} avg loss: {avg_loss:.4f}")
 
         # 중간 저장
-        save_patch(patch, args.mode, epoch)
+        save_patch(patch, args.mode, epoch, run_name)
 
     # 최종 저장
-    save_patch(patch, args.mode, "final")
-    plot_loss(loss_history, args.mode)
-    print(f"\n완료! output/{args.mode}_patch_final.pt 에 저장됨")
+    save_patch(patch, args.mode, "final", run_name)
+    plot_loss(loss_history, args.mode, run_name)
+    print(f"\n완료! output/{run_name}_patch_final.pt 에 저장됨")
 
 
-def save_patch(patch: torch.Tensor, mode: str, tag):
+def get_run_name(mode: str, alpha: float, beta: float) -> str:
+    """모드와 alpha/beta 조합으로 고유한 실행 이름 생성."""
+    if mode == "ensemble":
+        return f"ensemble_a{int(alpha*10):02d}_b{int(beta*10):02d}"
+    return mode
+
+
+def save_patch(patch: torch.Tensor, mode: str, tag, run_name: str = None):
     """패치를 .pt (tensor)와 .png (이미지)로 저장."""
+    name = run_name if run_name else mode
     p = patch.detach().cpu()
-    torch.save(p, OUT_DIR / f"{mode}_patch_{tag}.pt")
+    torch.save(p, OUT_DIR / f"{name}_patch_{tag}.pt")
     # PNG로도 저장
     arr = (p.permute(1, 2, 0).numpy() * 255).astype(np.uint8)
-    Image.fromarray(arr).save(OUT_DIR / f"{mode}_patch_{tag}.png")
+    Image.fromarray(arr).save(OUT_DIR / f"{name}_patch_{tag}.png")
 
 
-def plot_loss(history: list, mode: str):
+def plot_loss(history: list, mode: str, run_name: str = None):
+    name = run_name if run_name else mode
     plt.figure()
     plt.plot(history, marker="o")
-    plt.title(f"{mode} loss curve")
+    plt.title(f"{name} loss curve")
     plt.xlabel("Epoch")
     plt.ylabel("Avg confidence loss")
-    plt.savefig(OUT_DIR / f"{mode}_loss.png")
+    plt.savefig(OUT_DIR / f"{name}_loss.png")
     plt.close()
 
 

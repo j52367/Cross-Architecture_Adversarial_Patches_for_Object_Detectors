@@ -30,7 +30,7 @@ from ultralytics import YOLO
 # ── 설정 ──────────────────────────────────────────────────────────────────────
 
 IMG_SIZE = 640
-PATCH_FRACTION = 0.35
+PATCH_FRACTION = 0.50
 CONF_THRESHOLD = 0.25
 IOU_THRESHOLD = 0.45
 EVAL_IMAGES = 300        # 평가에 사용할 이미지 수 (전체 사용시 None)

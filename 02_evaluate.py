@@ -202,6 +202,8 @@ def compare_all(records: list, device):
         ("output/ensemble_patch_final.pt",                "Ensemble α=0.5 β=0.5"),
         ("output/ensemble_a03_b07_patch_final.pt",        "Ensemble α=0.3 β=0.7"),
         ("output/ensemble_a07_b03_patch_final.pt",        "Ensemble α=0.7 β=0.3"),
+        ("output/balanced_minmax_patch_final.pt",         "Balanced Min-Max (제안)"),
+        ("output/balanced_weighted_patch_final.pt",       "Balanced Weighted (비교)"),
     ]
     all_results = {}
     for path, label in configs:

@@ -1,0 +1,15 @@
+nohup: ignoring input
+
+장치: cuda
+학습 이미지: 2347장
+  모델 로드: rtdetr-l.pt
+  RT-DETR 출력 확인:     출력 shape: [torch.Size([6, 1, 300, 4]), torch.Size([6, 1, 300, 80]), torch.Size([1, 300, 4]), torch.Size([1, 300, 80]), <class 'NoneType'>]
+Epoch 1/30:   0%|          | 0/147 [00:00<?, ?it/s]Epoch 1/30:   0%|          | 0/147 [00:00<?, ?it/s]
+Traceback (most recent call last):
+  File "/home/user/kyj/cvproject/01_train_patch.py", line 311, in <module>
+    train(args)
+  File "/home/user/kyj/cvproject/01_train_patch.py", line 247, in train
+    loss_rtdetr = get_conf_rtdetr(rtdetr_nn, batch_tensor)
+  File "/home/user/kyj/cvproject/01_train_patch.py", line 179, in get_conf_rtdetr
+    raise ValueError(f"예상치 못한 RT-DETR 출력 shape: {pred_scores.shape}")
+ValueError: 예상치 못한 RT-DETR 출력 shape: torch.Size([6, 16, 300, 4])

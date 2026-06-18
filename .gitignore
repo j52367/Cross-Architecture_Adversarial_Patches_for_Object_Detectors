@@ -6,9 +6,6 @@ __pycache__/
 .venv/
 venv/
 
-.ipynb_checkpoints/
-*.ipynb
-
 .DS_Store
 *.egg-info/
 .claude/

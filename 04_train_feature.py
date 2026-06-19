@@ -44,7 +44,7 @@ PGD_STEPS = 20
 PGD_STEP_SIZE = 2 / 255
 ALPHA = 0.5              # YOLO feature loss 가중치
 BETA = 0.5              # RT-DETR feature loss 가중치
-BATCH_SIZE = 8           # feature hook 메모리 부담 → 03보다 작게
+BATCH_SIZE = 16           # feature hook 메모리 부담 → 03보다 작게
 N_HOOK_LAYERS = 3        # 모델당 hook 거는 중간 layer 수
 MAX_IMAGES = None
 

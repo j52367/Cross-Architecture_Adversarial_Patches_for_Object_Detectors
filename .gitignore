@@ -9,3 +9,10 @@ venv/
 .DS_Store
 *.egg-info/
 .claude/
+
+# logs and OS junk
+*.log
+*Zone.Identifier
+
+# downloaded pretrained weights (root only; output/ patches kept)
+/*.pt
